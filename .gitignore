@@ -1,0 +1,24 @@
+# Ignore node_modules folder (used by Node.js projects)
+node_modules/
+
+# Ignore Visual Studio Code settings folder
+.vscode/
+
+# Ignore build output folders
+bin/
+obj/
+
+# Ignore user-specific files created by Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore temporary files and folders
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# Ignore other system-specific files
+Thumbs.db
