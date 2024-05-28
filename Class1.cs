@@ -1,4 +1,6 @@
 ﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration.Attributes;
+using Wheater_data_Analysis_API.Models;
 
 namespace Wheater_data_Analysis_API.Models
 {
@@ -69,5 +71,5 @@ namespace Wheater_data_Analysis_API.Models
         Map(m => m.DataWindSpeed).Name("Data.Wind.Speed");
         }
     }
-}
+
 
