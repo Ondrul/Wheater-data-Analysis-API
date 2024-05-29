@@ -6,6 +6,9 @@ namespace Wheater_data_Analysis_API.Models
 {
     public class WeatherData
     {
+
+        public int Id { get; set; }
+
         [Name("Data.Precipitation")]
         public float DataPrecipitation { get; set; }
 

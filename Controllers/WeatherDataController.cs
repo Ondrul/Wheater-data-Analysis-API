@@ -2,6 +2,7 @@
 using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
+using WebApi.Helpers;
 using Wheater_data_Analysis_API.Models;
 using System.IO;
 using System.Linq;
@@ -11,6 +12,13 @@ using System.Threading.Tasks;
 [Route("api/[controller]")]
 public class WeatherDataController : ControllerBase
 {
+    private readonly DataContext _context;
+
+    public WeatherDataController(DataContext context)
+    {
+        _context = context;
+    }
+
     [HttpPost("upload")]
     public async Task<IActionResult> UploadWeatherData(IFormFile file)
     {
@@ -31,14 +39,14 @@ public class WeatherDataController : ControllerBase
 
             var records = csv.GetRecords<WeatherData>().ToList();
 
-        
             foreach (var record in records)
             {
-                Console.WriteLine($"Date: {record.DateFull}, City: {record.StationCity}, Temp: {record.DataTemperatureAvgTemp}");
+                _context.WeatherData.Add(record);
             }
-
-            return Ok(records);
+            await _context.SaveChangesAsync();
         }
+
+        return Ok("File uploaded and processed.");
     }
 
     public class FormModel
@@ -46,3 +54,4 @@ public class WeatherDataController : ControllerBase
         public IFormFile File { get; set; }
     }
 }
+

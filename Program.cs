@@ -10,14 +10,12 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddControllers();
 
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 SQLitePCL.Batteries.Init();
 
 var app = builder.Build();
-
 
 if (app.Environment.IsDevelopment())
 {
