@@ -9,6 +9,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.IO;
 
+
 [ApiController]
 [Route("api/[controller]")]
 public class WeatherDataController : ControllerBase
@@ -51,23 +52,70 @@ public class WeatherDataController : ControllerBase
     }
 
     [HttpGet("analysis")]
-    public async Task<IActionResult> GetWeatherDataAnalysis()
+    public async Task<IActionResult> GetWeatherDataAnalysis(Aggregation aggregationType, int? year = null, int? month = null, int? day = null, string city = null, string state = null)
     {
-   
-        var analysis = await _context.WeatherData
-            .GroupBy(w => w.DateYear)
-            .Select(g => new
-            {
-                Year = g.Key,
-                AvgTemperature = g.Average(w => w.DataTemperatureAvgTemp)
-            })
-            .ToListAsync();
+        var query = _context.WeatherData.AsQueryable();
 
-        return Ok(analysis);
+        if (year.HasValue)
+        {
+            query = query.Where(w => w.DateYear == year.Value);
+        }
+
+        if (month.HasValue)
+        {
+            query = query.Where(w => w.DateMonth == month.Value);
+        }
+
+        if (day.HasValue)
+        {
+            query = query.Where(w => w.DateFull.Contains($"-{day.Value:D2}-"));
+        }
+
+        if (!string.IsNullOrEmpty(city))
+        {
+            query = query.Where(w => w.StationCity == city);
+        }
+
+        if (!string.IsNullOrEmpty(state))
+        {
+            query = query.Where(w => w.StationState == state);
+        }
+
+        if (!query.Any())
+        {
+            return NotFound("No data found for the specified filters.");
+        }
+
+        var result = aggregationType switch
+        {
+            Aggregation.Max => await query.MaxAsync(w => w.DataTemperatureAvgTemp),
+            Aggregation.Min => await query.MinAsync(w => w.DataTemperatureAvgTemp),
+            Aggregation.Avg => await query.AverageAsync(w => w.DataTemperatureAvgTemp),
+            Aggregation.Sum => await query.SumAsync(w => w.DataTemperatureAvgTemp),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        string responseMessage = aggregationType switch
+        {
+            Aggregation.Max => $"The maximum temperature is: {result}",
+            Aggregation.Min => $"The minimum temperature is: {result}",
+            Aggregation.Avg => $"The average temperature is: {result}",
+            Aggregation.Sum => $"The total temperature sum is: {result}",
+            _ => "Unknown aggregation type"
+        };
+
+        return Ok(responseMessage);
     }
 
     public class FormModel
     {
         public IFormFile File { get; set; }
     }
+}
+public enum Aggregation
+{
+    Max,
+    Min,
+    Avg,
+    Sum,
 }
