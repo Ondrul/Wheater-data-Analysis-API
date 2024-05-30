@@ -17,6 +17,6 @@ namespace WebApi.Helpers
             options.UseSqlite(Configuration.GetConnectionString("WebApiDatabase"));
         }
 
-        public DbSet<WeatherData> WeatherData { get; set; } 
+        public DbSet<WeatherData> WeatherData { get; set; }
     }
 }

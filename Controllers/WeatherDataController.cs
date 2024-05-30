@@ -1,24 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Globalization;
-using System.Linq;
 using System.Threading.Tasks;
 using WebApi.Helpers;
 using Wheater_data_Analysis_API.Models;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.IO;
-
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 [ApiController]
 [Route("api/[controller]")]
 public class WeatherDataController : ControllerBase
 {
     private readonly DataContext _context;
+    private readonly WeatherDataService _service;
 
-    public WeatherDataController(DataContext context)
+    public WeatherDataController(DataContext context, WeatherDataService service)
     {
         _context = context;
+        _service = service;
     }
 
     [HttpPost("upload")]
@@ -57,54 +58,40 @@ public class WeatherDataController : ControllerBase
         var query = _context.WeatherData.AsQueryable();
 
         if (year.HasValue)
-        {
             query = query.Where(w => w.DateYear == year.Value);
-        }
-
         if (month.HasValue)
-        {
             query = query.Where(w => w.DateMonth == month.Value);
-        }
-
         if (day.HasValue)
-        {
             query = query.Where(w => w.DateWeekOf == day.Value);
-        }
-
         if (!string.IsNullOrEmpty(city))
-        {
             query = query.Where(w => w.StationCity == city);
-        }
-
         if (!string.IsNullOrEmpty(state))
-        {
             query = query.Where(w => w.StationState == state);
-        }
-
-        if (!query.Any())
-        {
-            return NotFound("No data found for the specified filters.");
-        }
 
         var result = aggregationType switch
         {
-            Aggregation.Max => await query.MaxAsync(w => w.DataTemperatureAvgTemp),
-            Aggregation.Min => await query.MinAsync(w => w.DataTemperatureAvgTemp),
-            Aggregation.Avg => await query.AverageAsync(w => w.DataTemperatureAvgTemp),
-            Aggregation.Sum => await query.SumAsync(w => w.DataTemperatureAvgTemp),
-            _ => throw new ArgumentOutOfRangeException()
+            Aggregation.Max => $"Maximum temperature is: {await query.MaxAsync(w => w.DataTemperatureAvgTemp)}",
+            Aggregation.Min => $"Minimum temperature is: {await query.MinAsync(w => w.DataTemperatureAvgTemp)}",
+            Aggregation.Avg => $"Average temperature is: {await query.AverageAsync(w => w.DataTemperatureAvgTemp)}",
+            Aggregation.Sum => $"Sum of temperatures is: {await query.SumAsync(w => w.DataTemperatureAvgTemp)}",
+            _ => "Invalid aggregation type."
         };
 
-        string responseMessage = aggregationType switch
-        {
-            Aggregation.Max => $"The maximum temperature is: {result}",
-            Aggregation.Min => $"The minimum temperature is: {result}",
-            Aggregation.Avg => $"The average temperature is: {result}",
-            Aggregation.Sum => $"The total temperature sum is: {result}",
-            _ => "Unknown aggregation type"
-        };
+        return Ok(result);
+    }
 
-        return Ok(responseMessage);
+    [HttpGet("cities")]
+    public async Task<IActionResult> GetCities()
+    {
+        var cities = await _service.GetCitiesAsync();
+        return Ok(cities);
+    }
+
+    [HttpGet("states")]
+    public async Task<IActionResult> GetStates()
+    {
+        var states = await _service.GetStatesAsync();
+        return Ok(states);
     }
 
     public class FormModel
@@ -112,6 +99,7 @@ public class WeatherDataController : ControllerBase
         public IFormFile File { get; set; }
     }
 }
+
 public enum Aggregation
 {
     Max,
