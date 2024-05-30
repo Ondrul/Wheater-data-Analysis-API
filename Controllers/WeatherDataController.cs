@@ -68,7 +68,7 @@ public class WeatherDataController : ControllerBase
 
         if (day.HasValue)
         {
-            query = query.Where(w => w.DateFull.Contains($"-{day.Value:D2}-"));
+            query = query.Where(w => w.DateWeekOf == day.Value);
         }
 
         if (!string.IsNullOrEmpty(city))
