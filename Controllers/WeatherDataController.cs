@@ -1,12 +1,13 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-using WebApi.Helpers;
-using Wheater_data_Analysis_API.Models;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using WebApi.Helpers;
+using Wheater_data_Analysis_API.Models;
+using CsvHelper;
+using CsvHelper.Configuration;
+using System.IO;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -49,9 +50,24 @@ public class WeatherDataController : ControllerBase
         return Ok("File uploaded and processed.");
     }
 
+    [HttpGet("analysis")]
+    public async Task<IActionResult> GetWeatherDataAnalysis()
+    {
+   
+        var analysis = await _context.WeatherData
+            .GroupBy(w => w.DateYear)
+            .Select(g => new
+            {
+                Year = g.Key,
+                AvgTemperature = g.Average(w => w.DataTemperatureAvgTemp)
+            })
+            .ToListAsync();
+
+        return Ok(analysis);
+    }
+
     public class FormModel
     {
         public IFormFile File { get; set; }
     }
 }
-
