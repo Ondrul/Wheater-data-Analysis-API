@@ -5,6 +5,7 @@
 namespace Wheater_data_Analysis_API.Migrations
 {
     /// <inheritdoc />
+  
     public partial class InitialCreate : Migration
     {
         /// <inheritdoc />

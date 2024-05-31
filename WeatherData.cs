@@ -74,5 +74,12 @@ namespace Wheater_data_Analysis_API.Models
         Map(m => m.DataWindSpeed).Name("Data.Wind.Speed");
         }
     }
+public enum Aggregation
+{
+    Max,
+    Min,
+    Avg,
+    Sum,
+}
 
 
